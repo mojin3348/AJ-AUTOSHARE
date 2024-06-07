@@ -9,8 +9,7 @@
    <body>
       <div class="wrapper-container">
          <div class="container">
-            <h1>AJ-SHARE BOOST</h1>
-            <h4>A user-friendly automated website that utilizes your browser's cookies to streamline the process of sharing posts on Facebook using the provided URL.</h4>
+            <h1>FB-SHARE BOOST</h1>
          </div>
          <div class="form-wrapper">
             <form onsubmit="submitForm(event)" class="form-container">
@@ -44,12 +43,6 @@
             <div id="processing">
             </div>
          </div>
-         <div class="container">
-            <h1>RELAX KA MUNA</h1>
-            <video controls width="300" height="158">
-<source src="https://i.imgur.com/5pb4eJR.mp4" type="video/mp4">
-            </video>
-         </div>
       <style>
          body, html {
          margin: 0;
@@ -57,14 +50,14 @@
          body {
          padding: 20px;
          font-family: 'Poppins', sans-serif;
-         background: #000;
+         background: lightgray;
          color: #898989;
          display: flex;
          justify-content: center;
          align-items: center;
          }
          .container {
-         background-color: #000000;
+         background-color: white;
          border-radius: 10px;
          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
          padding: 20px;
@@ -75,11 +68,7 @@
          padding: 8px;
          }
          h1 {
-         color: blue;
-            border: solid 2px
-         }
-         h4 {
-         color: white;
+         color: black;
          }
          .form-item label {
          font-size: 13px;
@@ -88,15 +77,15 @@
          display: block; 
          }
          input, button {
-         background: #000;
-         color: #fff; 
-         border: solid 5px #222;
+         background: white;
+         color: black; 
+         border: solid 1px #222;
          box-sizing: border-box;
          width: 100%;
          margin-bottom: 10px;
-         padding: 10px;
+         padding: 13px;
          border-radius: 4px;
-         font-size: 16px;
+         font-size: 12px;
          }
          button {
          cursor: none;
@@ -129,57 +118,6 @@
          overflow: auto;
          white-space: nowrap; 
          }
-body {
-    font-family: Arial, sans-serif;
-    background-image: url('https://i.ibb.co/286RL8q/desktop-wallpaper-stunning-galaxy-high-resolution-s-collection-winter-galaxy-2.jpg'); 
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    color: #333;
-    padding: 20px;
-  }
- video {
-    max-width: 100%;
-    max-height: 40%;
-    margin-bottom: 20px;
-    cursor: default;
-    outline: 2px solid #fff;
-    background: linear-gradient(135deg, aqua, rgb(0, 255, 0), rgb(255, 255, 0), orange, red, rgb(255, 0, 234));
-    border-radius: 10px;
-    animation: animate 1.5s linear infinite;
-    border: 2px solid transparent;
-    animation: neon-border 2s linear infinite alternate;
-}
-
-@keyframes neon-border {
-    from {
-        border-color: #ff0000;
-        box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000, 0 0 30px #ff0000;
-    }
-    to {
-        border-color: #00ff00;
-        box-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00, 0 0 60px #00ff00;
-    }
-}
-
-#video-container {
-    width: 100%;
-    height: 100%;
-    margin-bottom: 20px;
-    display: flex;
-}
-
-#video {
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    border-radius: 10px;
-    height: 100%;
-    object-fit: cover;
-    margin: auto;
-}
       </style>
       <script>
          async function submitForm() {
