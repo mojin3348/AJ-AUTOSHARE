@@ -9,7 +9,7 @@
    <body>
       <div class="wrapper-container">
          <div class="container">
-            <h1>FB-SHARE BOOST</h1>
+             <h1 id="running-text">FB-SHAREBOOST</h1>
          </div>
          <div class="container">
          <div class="form-wrapper">
@@ -60,6 +60,7 @@
          }
          .container {
          background-color: white;
+         border: solid 1px black;
          border-radius: 10px;
          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
          padding: 20px;
@@ -69,9 +70,75 @@
          .form-item {
          padding: 8px;
          }
-         h1 {
-         color: black;
-         }
+         .h1 
+           {
+  padding: 1px;
+  border: 1px solid black;
+  border-radius: 4px;
+  text-align: center; 
+  animation: rainbow 1s linear infinite;
+}
+
+@keyframes rainbow {
+  0% {
+    background-color: #ff0000; 
+  }
+  16.67% {
+    background-color: #ff7f00; 
+  }
+  33.33% {
+    background-color: #ffff00; 
+  }
+  50% {
+    background-color: #00ff00; 
+  }
+  66.67% {
+    background-color: #0000ff; 
+  }
+  83.33% {
+    background-color: #4b0082; 
+  }
+  100% {
+    background-color: #9400d3; 
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+} 
+@keyframes running-color {
+    0% {
+        color: orange;
+    }
+    25% {
+        color: green;
+    }
+    30% {
+        color: lime;
+    }
+    50% {
+        color: blue;
+    }
+    75% {
+        color: purple;
+    }
+    100% {
+        color: orange;
+    }
+  }
+  
+  #running-text {
+    animation: running-color 1.5s infinite; 
+    color: blue;
+}
+    
          .form-item label {
          font-size: 13px;
          color: black;
