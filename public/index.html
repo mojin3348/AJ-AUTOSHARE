@@ -57,16 +57,11 @@
          justify-content: center;
          align-items: center;
          }
-         .container {
-    max-width: 100%;
-    max-height: 40%;
-    margin-bottom: 20px;
-    padding: 20px;
-    margin: 20px auto;
-    cursor: default;
-    outline: 1px solid #fff;
-    background: ;
-    border-radius: 10px;
+         .container {/*background-color: #ffffff;*/ 
+            background-color: rgba(255, 255, 255, 0.5); /* Change 0.5 to adjust transparency level (0 is fully transparent, 1 is fully opaque) */ 
+            border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
+            padding: 20px; margin-top: 20px; 
+            margin-bottom: 20px; 
     animation: animate 1.5s linear infinite;
     border: 1px solid transparent;
     animation: neon-border 2s linear infinite alternate;
@@ -79,7 +74,7 @@
     }
     to {
         border-color: blue;
-        box-shadow: 0 0 5px blue, 0 0 10px blue, 0 0 20px blue;
+        box-shadow: 0 0 20px blue, 0 0 30px blue, 0 0 40px blue;
     }
 }
 
@@ -319,4 +314,4 @@
          
       </script>
    </body>
- </html>
+</html>
