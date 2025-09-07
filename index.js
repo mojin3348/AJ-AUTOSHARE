@@ -1,169 +1,137 @@
-const express = require('express');
-const axios = require('axios');
-const path = require('path');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const axios = require("axios");
+const path = require("path");
 
 const app = express();
-app.use(express.json());
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 
-const total = new Map();
-
-// ===== ROUTES =====
-app.get('/total', (req, res) => {
-  const data = Array.from(total.values()).map((link, index) => ({
-    session: index + 1,
-    url: link.url,
-    count: link.count,
-    id: link.id,
-    target: link.target,
-  }));
-  res.json(JSON.parse(JSON.stringify(data || [], null, 2)));
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-app.get('/', (res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-app.post('/api/submit', async (req, res) => {
-  const { cookie, url, amount, interval } = req.body;
-
-  if (!cookie || !url || !amount || !interval) {
-    return res.status(400).json({ error: 'Missing state, url, amount, or interval' });
-  }
-
-  try {
-    const cookies = await convertCookie(cookie);
-    if (!cookies) {
-      return res.status(400).json({ status: 500, error: 'Invalid cookies' });
-    }
-
-    await share(cookies, url, amount, interval);
-    res.status(200).json({ status: 200 });
-  } catch (err) {
-    return res.status(500).json({ status: 500, error: err.message || err });
-  }
-});
-
-// ===== FUNCTIONS =====
-async function share(cookies, url, amount, interval) {
-  const id = await getPostID(url);
-  const accessToken = await getAccessToken(cookies);
-
-  if (!id) {
-    throw new Error("Unable to get link id: invalid URL, it's either a private post or visible to friends only");
-  }
-
-  const postId = total.has(id) ? id + 1 : id;
-  total.set(postId, { url, id, count: 0, target: amount });
-
-  const headers = {
-    'accept': '*/*',
-    'accept-encoding': 'gzip, deflate',
-    'connection': 'keep-alive',
-    'content-length': '0',
-    'cookie': cookies,
-    'host': 'graph.facebook.com'
-  };
-
-  let sharedCount = 0;
-  let timer;
-
-  async function sharePost() {
-    try {
-      const response = await axios.post(
-        `https://graph.facebook.com/me/feed?link=https://m.facebook.com/${id}&published=0&access_token=${accessToken}`,
-        {},
-        { headers }
-      );
-
-      if (response.status === 200) {
-        total.set(postId, {
-          ...total.get(postId),
-          count: total.get(postId).count + 1,
-        });
-        sharedCount++;
-      }
-
-      if (sharedCount === amount) {
-        clearInterval(timer);
-      }
-    } catch (error) {
-      clearInterval(timer);
-      total.delete(postId);
-    }
-  }
-
-  timer = setInterval(sharePost, interval * 1000);
-
-  setTimeout(() => {
-    clearInterval(timer);
-    total.delete(postId);
-  }, amount * interval * 1000);
-}
-
-async function getPostID(url) {
-  try {
-    const response = await axios.post(
-      'https://id.traodoisub.com/api.php',
-      `link=${encodeURIComponent(url)}`,
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-    );
-    return response.data.id;
-  } catch (error) {
-    return;
-  }
-}
-
-async function getAccessToken(cookie) {
-  try {
-    const headers = {
-      'authority': 'business.facebook.com',
-      'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-      'accept-language': 'vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5',
-      'cache-control': 'max-age=0',
-      'cookie': cookie,
-      'referer': 'https://www.facebook.com/',
-      'sec-ch-ua': '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
-      'sec-ch-ua-mobile': '?0',
-      'sec-ch-ua-platform': '"Linux"',
-      'sec-fetch-dest': 'document',
-      'sec-fetch-mode': 'navigate',
-      'sec-fetch-site': 'same-origin',
-      'sec-fetch-user': '?1',
-      'upgrade-insecure-requests': '1',
-    };
-
-    const response = await axios.get('https://business.facebook.com/content_management', { headers });
-    const token = response.data.match(/"accessToken":\s*"([^"]+)"/);
-
-    if (token && token[1]) {
-      return token[1];
-    }
-  } catch (error) {
-    return;
-  }
-}
-
+// 🔑 Convert fbstate/appstate JSON → cookie string
 async function convertCookie(cookie) {
   return new Promise((resolve, reject) => {
     try {
-      const cookies = JSON.parse(cookie);
+      const cookies = typeof cookie === "string" ? JSON.parse(cookie) : cookie;
       const sbCookie = cookies.find(c => c.key === "sb");
 
       if (!sbCookie) {
-        reject("Detect invalid appstate please provide a valid appstate");
+        return reject("Detect invalid appstate, please provide a valid appstate");
       }
 
       const sbValue = sbCookie.value;
-      const data = `sb=${sbValue}; ${cookies.slice(1).map(c => `${c.key}=${c.value}`).join('; ')}`;
+      const data = `sb=${sbValue}; ${cookies
+        .filter(c => c.key !== "sb")
+        .map(c => `${c.key}=${decodeURIComponent(c.value)}`)
+        .join("; ")}`;
+
       resolve(data);
     } catch (error) {
-      reject("Error processing appstate please provide a valid appstate");
+      reject("Error processing appstate, please provide a valid appstate");
     }
   });
 }
 
-// ===== START SERVER =====
-app.listen(5000, () => console.log("🚀 Server running on port 5000"));
+// 🕵️ Extract fb_dtsg, jazoest, lsd, etc.
+async function extractTokens(cookie) {
+  const headers = {
+    cookie,
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+                  "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "accept-language": "en-US,en;q=0.9",
+  };
+
+  const res = await axios.get("https://www.facebook.com/", { headers });
+  const page = res.data;
+
+  return {
+    fb_dtsg: page.match(/"DTSGInitialData".*?"token":"([^"]+)"/)?.[1],
+    lsd: page.match(/"LSD",\[],{"token":"([^"]+)"}/)?.[1],
+    jazoest: page.match(/name="jazoest" value="([^"]+)"/)?.[1],
+    spin_r: page.match(/"__spin_r":([0-9]+)/)?.[1],
+    spin_t: page.match(/"__spin_t":([0-9]+)/)?.[1],
+    userId: cookie.match(/c_user=(\d+)/)?.[1]
+  };
+}
+
+// 🔎 Extract post ID from link
+function extractPostId(url) {
+  return url.match(/story_fbid=(\d+)/)?.[1] ||
+         url.match(/\/posts\/(\d+)/)?.[1] ||
+         url.match(/\/videos\/(\d+)/)?.[1] ||
+         url.match(/\/(\d{6,})(?:\/|\?|$)/)?.[1];
+}
+
+// 🚀 Endpoint: /react
+app.post("/react", async (req, res) => {
+  try {
+    const { appstate, postLink, reactionType, limit = 1 } = req.body;
+    if (!appstate || !postLink || !reactionType) {
+      return res.status(400).json({ error: "Missing fields" });
+    }
+
+    // Convert appstate → cookie string
+    const cookie = await convertCookie(appstate);
+
+    const tokens = await extractTokens(cookie);
+    if (!tokens.fb_dtsg) throw new Error("Token extraction failed");
+
+    const postId = extractPostId(postLink);
+    if (!postId) throw new Error("Invalid post link");
+
+    let success = 0, fail = 0;
+
+    for (let i = 0; i < limit; i++) {
+      try {
+        const form = new URLSearchParams({
+          av: tokens.userId,
+          __user: tokens.userId,
+          fb_dtsg: tokens.fb_dtsg,
+          jazoest: tokens.jazoest,
+          lsd: tokens.lsd,
+          __spin_r: tokens.spin_r,
+          __spin_b: "trunk",
+          __spin_t: tokens.spin_t,
+          fb_api_req_friendly_name: "CometUFIFeedbackReactMutation",
+          doc_id: "2403499796277671",
+          variables: JSON.stringify({
+            input: {
+              feedback_id: postId,
+              feedback_reaction: reactionType, // 1=Like, 2=Love, 16=Care, 4=Haha, 3=Wow, 7=Sad, 8=Angry
+              actor_id: tokens.userId,
+              client_mutation_id: String(Date.now())
+            }
+          })
+        });
+
+        await axios.post("https://www.facebook.com/api/graphql/", form, {
+          headers: {
+            "content-type": "application/x-www-form-urlencoded",
+            cookie,
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+                          "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+            "accept": "*/*",
+            "accept-language": "en-US,en;q=0.9",
+            "origin": "https://www.facebook.com",
+            "referer": "https://www.facebook.com/"
+          }
+        });
+
+        success++;
+      } catch {
+        fail++;
+      }
+    }
+
+    res.json({ reacted: success, failed: fail, account: tokens.userId });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 API ready on http://localhost:${PORT}`));
